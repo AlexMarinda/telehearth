@@ -4,7 +4,7 @@ import jwt from 'jsonwebtoken';
 
 // class contain all patient operation
 class consultantController {
-  // new user
+  // consultant 
   static async consultant(req, res) {
     const getUser = jwt.decode(req.headers.authorization.split(' ')[1]);
     const newConsulant = [
@@ -65,6 +65,79 @@ class consultantController {
        },
       });
     }
+  }
+
+  // booking
+  static async booking(req, res) {
+
+    const getUser = jwt.decode(req.headers.authorization.split(' ')[1]);
+    const sql = await client.query(`SELECT *
+    FROM doctors WHERE doctor_id='${req.params.doctor_id}' AND status='active' `);
+  
+      const { rowss, rowCount } = sql;
+      const [getDoctor] = rowss;
+
+  
+      if (rowCount > 0) {
+     
+  
+
+  
+    const newBooking = [
+      getUser.first_name,
+      getDoctor.first_name,
+      getUser.phone_number,
+      getDoctor.phone_number,
+      moment().format(),
+      getDoctor.doctor_id,
+      getUser.patient_id,
+      
+    ];
+
+    if(getDoctor.status==="booked" ){
+     
+      return res.status(409).send({ status: 409,
+        data: "Doctor was booked try another time or choose another"
+        });
+      
+           
+       }
+
+    const { rows } = await client.query(`INSERT INTO
+    bookings (patient_name,doctor_name,patient_tel,doctor_tel,created_on,doctor_id,patient_id) 
+ VALUES($1, $2, $3, $4, $5, $6, $7) returning *`, newBooking);
+
+
+ const result = rows;
+    const {
+      patient_name,
+      doctor_name,
+      patient_tel,
+      doctor_tel,
+      created_on,
+      doctor_id,
+      patient_id,
+
+    } = result[0];
+    if (result) {
+      return res.status(201).send({
+        status: 201,
+        message: 'you have done booking a doctor please process consultant payment to get a doctor time ',
+        data:
+       {
+        patient_name,
+        doctor_name,
+        patient_tel,
+        doctor_tel,
+        created_on,
+        doctor_id,
+        patient_id,
+       },
+      });
+    }
+  }
+  let a=getDoctor.doctor_id;
+    return res.status(401).send({ status: 401, message: 'User not found!',a });
   }
 
 

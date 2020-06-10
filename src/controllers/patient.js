@@ -87,7 +87,6 @@ db.collection('quotes').insertOne(finalImg, (err, result) => {
       return res.status(409).send({ status: 409, message: 'choose another email this was taken' });
     }
 
-
     const { rows } = await client.query(`INSERT INTO
     patients (email,first_name,last_name,gender,country,city,street_address,house_number,pic,copy_id,password,dob,phone_number,created_on) 
  VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11,$12,$13,$14) returning *`, newUser);

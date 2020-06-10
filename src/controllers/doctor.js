@@ -1,7 +1,7 @@
-import { generateToken, encryptPass, checkPassword } from '../helpers';
-//import patients from '../model/users';
+import moment from 'moment';
 import payLoad from '../helpers/payload';
 import client from '../config/connection';
+import { generateToken, encryptPass, checkPassword } from '../helpers';
 
 // class contain all user operation
 class DoctorController {
@@ -29,6 +29,7 @@ class DoctorController {
       req.body.experience,
       req.body.start_year,
       req.body.no_practice,
+      moment().format(),
     ];
 
     const sql = await client.query(`SELECT *
@@ -41,8 +42,8 @@ class DoctorController {
 
 
     const { rows } = await client.query(`INSERT INTO
-    doctors (email,first_name,last_name,country,city,gender,tel,pic,copy_id,password,dob,course,graduete_year,college,certificate,professional_bio,language,specialities,experience,start_year,no_practice) 
- VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21) returning *`, newUser);
+    doctors (email,first_name,last_name,country,city,gender,tel,pic,copy_id,password,dob,course,graduete_year,college,certificate,professional_bio,language,specialities,experience,start_year,no_practice,created_on) 
+ VALUES($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20, $21, $22) returning *`, newUser);
 
 
     const result = rows;
@@ -73,6 +74,7 @@ class DoctorController {
 
   // user signin function
   static async login(req, res) {
+    let result;
     const sql = await client.query(`SELECT *
   FROM doctors WHERE email='${req.body.email}'`);
 
@@ -83,14 +85,22 @@ class DoctorController {
     // compare password
       const [currentUser] = rows;
       if (checkPassword(currentUser.password, req.body.password)) {
-        const token = generateToken(currentUser);
+        
+        result = await client.query(`UPDATE doctors SET status='active'   WHERE   doctor_id=${currentUser.doctor_id} returning *`);
+        const token = generateToken(currentUser);  
         const {
           doctor_id,
           email,
           first_name,
           last_name,
+          status
 
         } = currentUser;
+
+           
+           // const { rowss, rowCountt } = result;
+    
+           // const [findDoctorss] = rowss;
 
         return res.status(200).send({
           status: 200,
@@ -101,10 +111,12 @@ class DoctorController {
             email,
             first_name,
             last_name,
+            status
 
           },
         });
       }
+      return res.status(400).send({ status: 400, message: 'Incorect password or email' });
     }
 
 
@@ -121,7 +133,7 @@ FROM doctors  WHERE  specialities=${req.params.specialities}`);
 
 
      if (rowCount > 0) {
-        /* const {
+         const {
           first_name,
           last_name,
           country,
@@ -137,7 +149,7 @@ FROM doctors  WHERE  specialities=${req.params.specialities}`);
           experience,
           start_year,
 
-        } = findDoctor[0];*/
+        } = findDoctor[0];
 
         return res.status(200).send({
           status: 200,
@@ -149,6 +161,28 @@ FROM doctors  WHERE  specialities=${req.params.specialities}`);
       }
       return res.status(404).send({ status: 404, message: 'doctor not found!' });
   
+  }
+
+   // get all patient
+   static async getAllDoctorApproved(req, res) {
+    const limit = req.query.LIMIT || 4;
+    const page = req.query.PAGE || 1;
+    const offset = (page - 1) * limit;
+    const sql = await client.query(`SELECT *
+FROM doctors WHERE LIMIT ${limit} OFFSET ${offset}`);
+    const findPatient = sql.rows;
+    if (findPatient) {
+      findPatient.reverse();
+      return res.status(200).send({
+        status: 200,
+        message: 'success',
+        page,
+        patientNumber: findPatient.length,
+        data:
+        findPatient,
+      });
+    }
+    return res.status(404).send({ status: 404, message: 'patient not found!' });
   }
 
 

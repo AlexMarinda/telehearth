@@ -9,6 +9,7 @@ const router = express.Router();
 
 
 router.post('/consultant',verifyToken ,consultantController.consultant );
+router.post('/consultant',verifyToken ,consultantController.consultant );
 router.get('/', verifyToken, UserController.getAllPatient);
 router.patch('/:patient_id', verifyToken,UserController.editPatient);
 
