@@ -32,7 +32,7 @@
     "dev-rw-phone": "^1.0.0",
     "dotenv": "^8.2.0",
     "eslint-plugin-import": "^2.20.1",
-    "express": "^4.17.1",
+    "express": "^4.17.3",
     "express-mung": "^0.5.1",
     "jsonwebtoken": "^8.5.1",
     "moment": "^2.24.0",
